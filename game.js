@@ -44,6 +44,15 @@ const startButton = document.querySelector("#start-button");
 const newMapButton = document.querySelector("#new-map-button");
 const testMegaButton = document.querySelector("#test-mega-button");
 const audioToggle = document.querySelector("#audio-toggle");
+const controlHint = document.querySelector("#control-hint");
+
+const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
+const inputState = {
+  touchEnabled: coarsePointerQuery.matches || navigator.maxTouchPoints > 0,
+  pointerId: null,
+  lastX: 0,
+  lastY: 0,
+};
 
 const directions = {
   up: { x: 0, y: -1 },
@@ -1259,10 +1268,58 @@ function loadImage(src, onLoad) {
   });
 }
 
+function updateInputMode() {
+  inputState.touchEnabled = coarsePointerQuery.matches || navigator.maxTouchPoints > 0;
+  document.body.classList.toggle("touch-input", inputState.touchEnabled);
+
+  if (controlHint) {
+    controlHint.textContent = inputState.touchEnabled
+      ? "Scorri sul labirinto per muoverti"
+      : "Frecce / WASD · P mette in pausa";
+  }
+}
+
+function directionFromSwipe(deltaX, deltaY) {
+  if (Math.abs(deltaX) > Math.abs(deltaY)) {
+    return deltaX > 0 ? "right" : "left";
+  }
+  return deltaY > 0 ? "down" : "up";
+}
+
+function beginTouchControl(event) {
+  if (!inputState.touchEnabled || event.pointerType === "mouse") return;
+  event.preventDefault();
+  inputState.pointerId = event.pointerId;
+  inputState.lastX = event.clientX;
+  inputState.lastY = event.clientY;
+  canvas.setPointerCapture?.(event.pointerId);
+}
+
+function moveTouchControl(event) {
+  if (!inputState.touchEnabled || event.pointerId !== inputState.pointerId) return;
+  event.preventDefault();
+
+  const deltaX = event.clientX - inputState.lastX;
+  const deltaY = event.clientY - inputState.lastY;
+  const swipeThreshold = 18;
+
+  if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < swipeThreshold) return;
+
+  requestDirection(directionFromSwipe(deltaX, deltaY));
+  inputState.lastX = event.clientX;
+  inputState.lastY = event.clientY;
+}
+
+function endTouchControl(event) {
+  if (event.pointerId !== inputState.pointerId) return;
+  inputState.pointerId = null;
+  canvas.releasePointerCapture?.(event.pointerId);
+}
+
 window.addEventListener("keydown", (event) => {
   const directionName = keyMap[event.code];
 
-  if (directionName) {
+  if (directionName && !inputState.touchEnabled) {
     event.preventDefault();
     requestDirection(directionName);
     return;
@@ -1313,16 +1370,19 @@ audioToggle.addEventListener("click", () => {
   }
 });
 
-document.querySelectorAll("[data-direction]").forEach((button) => {
-  button.addEventListener("pointerdown", (event) => {
-    event.preventDefault();
-    requestDirection(button.dataset.direction);
-  });
+canvas.addEventListener("pointerdown", beginTouchControl, { passive: false });
+canvas.addEventListener("pointermove", moveTouchControl, { passive: false });
+canvas.addEventListener("pointerup", endTouchControl);
+canvas.addEventListener("pointercancel", endTouchControl);
+
+coarsePointerQuery.addEventListener?.("change", updateInputMode);
+window.addEventListener("resize", () => {
+  setupCanvas();
+  updateInputMode();
 });
 
-window.addEventListener("resize", setupCanvas);
-
 setupCanvas();
+updateInputMode();
 loadImage(CONFIG.playerSprite.src, (image) => {
   state.playerImage = image;
 });
@@ -1332,7 +1392,9 @@ loadImage(CONFIG.megaSprite.src, (image) => {
 buildLevel();
 showOverlay(
   "PRONTO?",
-  "Raccogli tutte le palline, apri la stanza centrale e prendi il sigillo. Poi trova l'uscita senza farti raggiungere dallo spazzolino.",
+  inputState.touchEnabled
+    ? "Scorri sul labirinto per muoverti. Raccogli tutte le palline, prendi il sigillo e scappa dallo spazzolino."
+    : "Usa WASD o le frecce. Raccogli tutte le palline, prendi il sigillo e scappa dallo spazzolino.",
   "GIOCA",
 );
 requestAnimationFrame((time) => {

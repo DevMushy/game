@@ -85,3 +85,10 @@ Per cambiare le spritesheet basta aggiornare i percorsi e le dimensioni dei fram
 ## Nota sugli asset
 
 La dentiera e la trasformazione sono basate sulle immagini fornite e approvate per questo progetto. La nuova animazione speciale conserva le diverse prospettive della dentiera originale e le riproduce in sequenza avanti/indietro per rendere evidente il movimento tridimensionale.
+
+## Controlli
+
+- **Desktop:** usa `WASD` oppure le frecce direzionali. Premi `P` per la pausa.
+- **Smartphone e tablet:** scorri direttamente sul labirinto nella direzione desiderata. Non ci sono pulsanti direzionali sullo schermo.
+
+Il gioco riconosce automaticamente il tipo di dispositivo e mostra il suggerimento corretto.

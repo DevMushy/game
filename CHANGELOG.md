@@ -12,3 +12,10 @@
 - aggiunti effetti sonori sintetizzati e pulsante audio;
 - rifinita l'interfaccia e riscritti i testi di gioco;
 - ripulita la cartella degli asset non più utilizzati.
+
+## Controlli adattivi
+
+- rimossi i pulsanti direzionali su schermo;
+- aggiunti comandi touch tramite swipe sul canvas per smartphone e tablet;
+- mantenuti WASD e frecce direzionali sui dispositivi desktop;
+- suggerimento dei comandi aggiornato automaticamente in base al dispositivo.
