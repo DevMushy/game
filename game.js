@@ -3,7 +3,7 @@
 const CONFIG = {
   columns: 15,
   rows: 15,
-  tileSize: 40,
+  tileSize: 30,
   playerSpeed: 7.0,
   enemySpeed: 4.05,
   extraConnections: 58,
@@ -164,7 +164,7 @@ function getObjectiveText() {
   if (state.mega.active || state.phase === "mega") return "Trasformazione in corso";
   if (state.phase === "item") return "Entra nella stanza e prendi il sigillo";
   if (state.phase === "escape") return "Raggiungi la porta aperta";
-  return "Ripulisci tutti i corridoi";
+  return "TMordi tutto tranne lo spazzolino!";
 }
 
 function ensureAudioContext() {
@@ -788,8 +788,8 @@ function finishMegaAnimation() {
   playUnlockSound();
   updateHud();
   showOverlay(
-    "TRASFORMAZIONE COMPLETATA",
-    "Il sigillo del serpente ha completato la rotazione. La porta è aperta: corri, prima che arrivi lo spazzolino.",
+    "TEMPIO SBLOCCATO",
+    "La porta del tempio si è sbloccata: corri, prima che arrivi lo spazzolino.",
     "SCAPPA",
   );
 }
@@ -1347,7 +1347,7 @@ newMapButton.addEventListener("click", () => {
   buildLevel();
   showOverlay(
     "NUOVA MAPPA",
-    "Raccogli tutti i pallini, apri la stanza centrale e attiva la trasformazione.",
+    "Raccogli tutti i pallini, Mordi Tutto!.",
     "GIOCA",
   );
 });
@@ -1393,8 +1393,8 @@ buildLevel();
 showOverlay(
   "PRONTO?",
   inputState.touchEnabled
-    ? "Scorri sul labirinto per muoverti. Raccogli tutte le palline, prendi il sigillo e scappa dallo spazzolino."
-    : "Usa WASD o le frecce. Raccogli tutte le palline, prendi il sigillo e scappa dallo spazzolino.",
+    ? "Scorri sul labirinto per muoverti. TMordi Tutto!."
+    : "Usa WASD o le frecce. Raccogli tutte le palline, TMordi Tutto!",
   "GIOCA",
 );
 requestAnimationFrame((time) => {
