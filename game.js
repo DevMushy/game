@@ -1,10 +1,15 @@
 "use strict";
 
+const BEST_SCORE_STORAGE_KEY = "dentureMazeBest";
+const MOVEMENT_EPSILON = 0.0001;
+const MAX_FRAME_DELTA = 0.05;
+const SWIPE_THRESHOLD = 18;
+
 const CONFIG = {
   columns: 15,
   rows: 15,
   tileSize: 30,
-  playerSpeed: 7.0,
+  playerSpeed: 7,
   enemySpeed: 4.05,
   extraConnections: 58,
   roomInteriorSize: 5,
@@ -42,7 +47,6 @@ const overlayTitle = document.querySelector("#overlay-title");
 const overlayText = document.querySelector("#overlay-text");
 const startButton = document.querySelector("#start-button");
 const newMapButton = document.querySelector("#new-map-button");
-//const testMegaButton = document.querySelector("#test-mega-button");
 const audioToggle = document.querySelector("#audio-toggle");
 const controlHint = document.querySelector("#control-hint");
 
@@ -138,7 +142,7 @@ function initializeUi() {
 
 function readBestScore() {
   try {
-    return Number.parseInt(localStorage.getItem("dentureMazeBest") || "0", 10) || 0;
+    return Number.parseInt(localStorage.getItem(BEST_SCORE_STORAGE_KEY) || "0", 10) || 0;
   } catch {
     return 0;
   }
@@ -146,9 +150,9 @@ function readBestScore() {
 
 function saveBestScore(value) {
   try {
-    localStorage.setItem("dentureMazeBest", String(value));
+    localStorage.setItem(BEST_SCORE_STORAGE_KEY, String(value));
   } catch {
-    // Il gioco continua normalmente anche quando lo storage non è disponibile.
+    // In modalità privata localStorage potrebbe non essere disponibile.
   }
 }
 
@@ -164,7 +168,7 @@ function getObjectiveText() {
   if (state.mega.active || state.phase === "mega") return "Trasformazione in corso";
   if (state.phase === "item") return "Entra nella stanza e prendi il sigillo";
   if (state.phase === "escape") return "Raggiungi la porta aperta";
-  return "TMordi tutto tranne lo spazzolino!";
+  return "Mordi tutto, ma evita lo spazzolino!";
 }
 
 function ensureAudioContext() {
@@ -248,6 +252,11 @@ function shuffle(array) {
     [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
+}
+
+function pickRandom(array) {
+  if (array.length === 0) return null;
+  return array[Math.floor(Math.random() * array.length)];
 }
 
 function tileKey(x, y) {
@@ -366,7 +375,7 @@ function smoothMaze(map) {
         }
 
         if (walls.length > 0) {
-          toOpen.push(walls[Math.floor(Math.random() * walls.length)]);
+          toOpen.push(pickRandom(walls));
         }
       }
     }
@@ -455,7 +464,7 @@ function createExitDoor() {
   }
 
   const filtered = candidates.filter(({ x, y }) => !(x <= 2 && y <= 2));
-  state.exitDoor = filtered[Math.floor(Math.random() * filtered.length)] || {
+  state.exitDoor = pickRandom(filtered) || {
     x: CONFIG.columns - 1,
     y: CONFIG.rows - 2,
   };
@@ -518,10 +527,7 @@ function resetEnemy() {
   state.pellets.delete(tileKey(start.x, start.y));
 }
 
-function buildLevel() {
-  state.map = generateMaze();
-  createExitDoor();
-  state.pellets = createPellets();
+function resetRoundState() {
   state.particles = [];
   state.score = 0;
   state.running = false;
@@ -532,6 +538,14 @@ function buildLevel() {
   state.centerGateOpen = false;
   state.itemCollected = false;
   state.mega.active = false;
+  state.mega.preview = false;
+}
+
+function buildLevel() {
+  resetRoundState();
+  state.map = generateMaze();
+  createExitDoor();
+  state.pellets = createPellets();
   resetPlayer();
   resetEnemy();
   updateHud();
@@ -594,6 +608,23 @@ function togglePause() {
   }
 }
 
+function isActorCentered(actor) {
+  return (
+    Math.abs(actor.x - actor.tileX) < MOVEMENT_EPSILON &&
+    Math.abs(actor.y - actor.tileY) < MOVEMENT_EPSILON
+  );
+}
+
+function snapActorToTile(actor) {
+  actor.x = actor.tileX;
+  actor.y = actor.tileY;
+}
+
+function updateActorFacing(actor) {
+  if (actor.direction === "left") actor.facing = -1;
+  if (actor.direction === "right") actor.facing = 1;
+}
+
 function moveActor(actor, speed, deltaTime) {
   if (!actor.moving) return false;
 
@@ -618,13 +649,9 @@ function moveActor(actor, speed, deltaTime) {
 
 function updatePlayer(deltaTime) {
   const player = state.player;
-  const centered =
-    Math.abs(player.x - player.tileX) < 0.0001 &&
-    Math.abs(player.y - player.tileY) < 0.0001;
 
-  if (centered) {
-    player.x = player.tileX;
-    player.y = player.tileY;
+  if (isActorCentered(player)) {
+    snapActorToTile(player);
 
     if (canMoveFrom(player.tileX, player.tileY, player.queuedDirection)) {
       player.direction = player.queuedDirection;
@@ -633,8 +660,7 @@ function updatePlayer(deltaTime) {
     player.moving = canMoveFrom(player.tileX, player.tileY, player.direction);
   }
 
-  if (player.direction === "left") player.facing = -1;
-  if (player.direction === "right") player.facing = 1;
+  updateActorFacing(player);
 
   if (moveActor(player, CONFIG.playerSpeed, deltaTime)) {
     onPlayerArrived(player.tileX, player.tileY);
@@ -683,20 +709,14 @@ function updateEnemy(deltaTime) {
   if (state.phase === "mega") return;
 
   const enemy = state.enemy;
-  const centered =
-    Math.abs(enemy.x - enemy.tileX) < 0.0001 &&
-    Math.abs(enemy.y - enemy.tileY) < 0.0001;
 
-  if (centered) {
-    enemy.x = enemy.tileX;
-    enemy.y = enemy.tileY;
+  if (isActorCentered(enemy)) {
+    snapActorToTile(enemy);
     enemy.direction = chooseEnemyDirection();
     enemy.moving = canMoveFrom(enemy.tileX, enemy.tileY, enemy.direction);
   }
 
-  if (enemy.direction === "left") enemy.facing = -1;
-  if (enemy.direction === "right") enemy.facing = 1;
-
+  updateActorFacing(enemy);
   moveActor(enemy, CONFIG.enemySpeed, deltaTime);
 }
 
@@ -1127,7 +1147,7 @@ function drawMegaAnimation(time) {
     context.fillStyle = CONFIG.colors.white;
   }
 
-  // Pixel sparsi e anelli irregolari: volutamente non perfetti, come un vecchio arcade.
+  // Raggi e anelli restano volutamente irregolari, in stile arcade.
   const rayCount = 30;
   for (let i = 0; i < rayCount; i += 1) {
     const angle = (i / rayCount) * Math.PI * 2 + time * 0.0011;
@@ -1160,8 +1180,7 @@ function drawMegaAnimation(time) {
     const sourceX = column * mega.frameWidth;
     const sourceY = row * mega.frameHeight;
 
-    // I primi dieci frame girano da sinistra a destra, gli altri tornano indietro.
-    // La variazione di scala accentua la prospettiva già presente nell'asset originale.
+    // La seconda metà della spritesheet riporta la dentiera verso il punto iniziale.
     const viewIndex = frame <= 9 ? frame : mega.frameCount - frame;
     const frontness = 1 - Math.min(Math.abs(viewIndex - 4.5) / 4.5, 1);
     const sideDirection = (viewIndex - 4.5) / 4.5;
@@ -1175,9 +1194,7 @@ function drawMegaAnimation(time) {
     const yOffset = (1 - frontness) * 10;
     const shake = progress > 0.38 && progress < 0.74 ? Math.sin(time * 0.085) * 4 : 0;
 
-    // Il contenuto reale della spritesheet non occupa tutto il frame,
-    // soprattutto in verticale. Per questo allineiamo il centro visivo
-    // della dentiera, non il semplice riquadro del frame.
+    // Il disegno non è centrato nel frame, quindi compensiamo l'offset dell'asset.
     const contentCenterX = 179.5;
     const contentCenterY = 79.7;
     const scaledContentCenterX = (contentCenterX / mega.frameWidth) * drawWidth;
@@ -1185,7 +1202,7 @@ function drawMegaAnimation(time) {
     const spriteX = centerX - scaledContentCenterX + xOffset + shake;
     const spriteY = centerY - scaledContentCenterY + yOffset;
 
-    // Ombra ellittica a pixel: rende la dentiera meno "incollata" allo sfondo.
+    // Una piccola ombra separa meglio la dentiera dallo sfondo.
     context.save();
     context.globalAlpha = inverted ? 1 : 0.85;
     const shadowWidth = 360 + frontness * 100;
@@ -1233,7 +1250,7 @@ function drawMegaAnimation(time) {
 }
 
 function gameLoop(time) {
-  const deltaTime = Math.min((time - state.lastTime) / 1000, 0.05);
+  const deltaTime = Math.min((time - state.lastTime) / 1000, MAX_FRAME_DELTA);
   state.lastTime = time;
 
   if (state.mega.active) {
@@ -1301,9 +1318,8 @@ function moveTouchControl(event) {
 
   const deltaX = event.clientX - inputState.lastX;
   const deltaY = event.clientY - inputState.lastY;
-  const swipeThreshold = 18;
 
-  if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < swipeThreshold) return;
+  if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < SWIPE_THRESHOLD) return;
 
   requestDirection(directionFromSwipe(deltaX, deltaY));
   inputState.lastX = event.clientX;
@@ -1347,15 +1363,10 @@ newMapButton.addEventListener("click", () => {
   buildLevel();
   showOverlay(
     "NUOVA MAPPA",
-    "Raccogli tutti i pallini, Mordi Tutto!.",
+    "Raccogli tutti i pallini e mordi tutto!",
     "GIOCA",
   );
 });
-
-/*testMegaButton.addEventListener("click", () => {
-  ensureAudioContext();
-  startMegaAnimation(true);
-});*/
 
 audioToggle.addEventListener("click", () => {
   state.audio.enabled = !state.audio.enabled;
@@ -1393,8 +1404,8 @@ buildLevel();
 showOverlay(
   "PRONTO?",
   inputState.touchEnabled
-    ? "Scorri sul labirinto per muoverti. TMordi Tutto!."
-    : "Usa WASD o le frecce. Raccogli tutte le palline, TMordi Tutto!",
+    ? "Scorri sul labirinto per muoverti. Mordi tutto!"
+    : "Usa WASD o le frecce. Raccogli tutte le palline e mordi tutto!",
   "GIOCA",
 );
 requestAnimationFrame((time) => {
