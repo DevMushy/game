@@ -42,7 +42,7 @@ const overlayTitle = document.querySelector("#overlay-title");
 const overlayText = document.querySelector("#overlay-text");
 const startButton = document.querySelector("#start-button");
 const newMapButton = document.querySelector("#new-map-button");
-const testMegaButton = document.querySelector("#test-mega-button");
+//const testMegaButton = document.querySelector("#test-mega-button");
 const audioToggle = document.querySelector("#audio-toggle");
 const controlHint = document.querySelector("#control-hint");
 
@@ -1352,10 +1352,10 @@ newMapButton.addEventListener("click", () => {
   );
 });
 
-testMegaButton.addEventListener("click", () => {
+/*testMegaButton.addEventListener("click", () => {
   ensureAudioContext();
   startMegaAnimation(true);
-});
+});*/
 
 audioToggle.addEventListener("click", () => {
   state.audio.enabled = !state.audio.enabled;

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000" />
   <meta
     name="description"
-    content="Denture Maze: un piccolo arcade in bianco e nero con labirinti casuali, dentiere animate e uno spazzolino decisamente troppo motivato."
+    content="TMordo game. Raccogli tutte le palline senza farti raggiungere dallo spazzolino."
   />
   <title>Denture Maze</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
@@ -16,9 +16,7 @@
   <main class="game-shell">
     <header class="game-header">
       <div class="brand">
-        <p class="eyebrow">ARCADE DENTALE · BUILD 0.9</p>
-        <h1>Denture Maze</h1>
-        <p class="tagline">Raccogli. Trasformati. Scappa dallo spazzolino.</p>
+        <p class="eyebrow">TMORDO ARCADE · BUILD 0.9</p>
       </div>
 
       <div class="stats" aria-label="Statistiche di gioco">
@@ -39,17 +37,17 @@
 
     <section class="objective-strip" aria-live="polite">
       <span>Obiettivo</span>
-      <strong id="objective-label">Ripulisci tutti i corridoi</strong>
+      <strong id="objective-label">TMordi tutto tranne lo spazzolino!</strong>
     </section>
 
     <section class="game-card">
-      <canvas id="game" aria-label="Labirinto di Denture Maze"></canvas>
+      <canvas id="game" aria-label="Labirinto di TMordo"></canvas>
 
       <div id="overlay" class="overlay visible">
         <div class="overlay-panel">
-          <p class="eyebrow">DENTURE MAZE</p>
+          <p class="eyebrow">TMORDO ARCADE</p>
           <h2 id="overlay-title">Pronto?</h2>
-          <p id="overlay-text">Raccogli tutte le palline senza farti raggiungere dallo spazzolino.</p>
+          <p id="overlay-text">TMordi Tutto!</p>
           <button id="start-button" type="button">Gioca</button>
         </div>
       </div>
@@ -60,9 +58,9 @@
         <button id="new-map-button" class="secondary-button" type="button">
           Nuova partita
         </button>
-        <button id="test-mega-button" class="secondary-button featured-button" type="button">
+        <!--button id="test-mega-button" class="secondary-button featured-button" type="button">
           Prova trasformazione
-        </button>
+        </button-->
         <button id="audio-toggle" class="secondary-button" type="button" aria-pressed="false">
           Audio: ON
         </button>
@@ -72,8 +70,7 @@
 
 
     <footer class="game-footer">
-      <span>Un piccolo esperimento arcade fatto a mano.</span>
-      <span>La dentiera non ama essere spazzolata.</span>
+<span><a href="https://tmordo.example.com">Instagram</a></span>
     </footer>
   </main>
 
