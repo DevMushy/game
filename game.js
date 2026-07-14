@@ -1,11 +1,11 @@
 "use strict";
 
 const CONFIG = {
-  columns: 25,
-  rows: 19,
+  columns: 10,
+  rows: 10,
   tileSize: 40,
   playerSpeed: 7.0,
-  enemySpeed: 5.05,
+  enemySpeed: 4.05,
   extraConnections: 58,
   roomInteriorSize: 5,
   colors: {
