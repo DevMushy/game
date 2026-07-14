@@ -1,8 +1,8 @@
 "use strict";
 
 const CONFIG = {
-  columns: 10,
-  rows: 10,
+  columns: 15,
+  rows: 15,
   tileSize: 40,
   playerSpeed: 7.0,
   enemySpeed: 4.05,
