@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta
+    name="description"
+    content="Denture Maze: un piccolo arcade in bianco e nero con labirinti casuali, dentiere animate e uno spazzolino decisamente troppo motivato."
+  />
+  <title>Denture Maze</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game-shell">
+    <header class="game-header">
+      <div class="brand">
+        <p class="eyebrow">ARCADE DENTALE · BUILD 0.9</p>
+        <h1>Denture Maze</h1>
+        <p class="tagline">Raccogli. Trasformati. Scappa dallo spazzolino.</p>
+      </div>
+
+      <div class="stats" aria-label="Statistiche di gioco">
+        <div class="stat">
+          <span>Punteggio</span>
+          <strong id="score">0</strong>
+        </div>
+        <div class="stat">
+          <span>Palline</span>
+          <strong id="pellets">0</strong>
+        </div>
+        <div class="stat">
+          <span>Record</span>
+          <strong id="best-score">0</strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="objective-strip" aria-live="polite">
+      <span>Obiettivo</span>
+      <strong id="objective-label">Ripulisci tutti i corridoi</strong>
+    </section>
+
+    <section class="game-card">
+      <canvas id="game" aria-label="Labirinto di Denture Maze"></canvas>
+
+      <div id="overlay" class="overlay visible">
+        <div class="overlay-panel">
+          <p class="eyebrow">DENTURE MAZE</p>
+          <h2 id="overlay-title">Pronto?</h2>
+          <p id="overlay-text">Raccogli tutte le palline senza farti raggiungere dallo spazzolino.</p>
+          <button id="start-button" type="button">Gioca</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="actions">
+      <div class="action-buttons">
+        <button id="new-map-button" class="secondary-button" type="button">
+          Nuova partita
+        </button>
+        <button id="test-mega-button" class="secondary-button featured-button" type="button">
+          Prova trasformazione
+        </button>
+        <button id="audio-toggle" class="secondary-button" type="button" aria-pressed="false">
+          Audio: ON
+        </button>
+      </div>
+      <p class="keyboard-hint">Frecce / WASD · P mette in pausa</p>
+    </div>
+
+    <nav class="mobile-controls" aria-label="Controlli touch">
+      <button data-direction="up" aria-label="Muovi verso l'alto">▲</button>
+      <div>
+        <button data-direction="left" aria-label="Muovi verso sinistra">◀</button>
+        <button data-direction="down" aria-label="Muovi verso il basso">▼</button>
+        <button data-direction="right" aria-label="Muovi verso destra">▶</button>
+      </div>
+    </nav>
+
+    <footer class="game-footer">
+      <span>Un piccolo esperimento arcade fatto a mano.</span>
+      <span>La dentiera non ama essere spazzolata.</span>
+    </footer>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
